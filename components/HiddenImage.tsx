@@ -8,15 +8,16 @@ interface HiddenImageProps {
 }
 
 /**
- * LOGIC FOR PROGRESSIVE REVEAL:
+ * LOGIC FOR PROGRESSIVE REVEAL (UPDATED):
  * 
- * We want the game to get easier visually as it progresses, but keep the mystery at the start.
+ * We want to prioritize outer edges but allow for "noisy" reveals so the center isn't always the absolute last.
  * 
- * 1. Concept: The "Subject" of a photo is usually in the center. The "Context" is at the edges.
- * 2. Algorithm: Calculate Euclidean distance from the center tile (2,2) for every tile.
- * 3. Sorting: Sort tiles by distance DESCENDING (furthest tiles first).
+ * 1. Algorithm: Calculate Euclidean distance from center (2,2).
+ * 2. Sorting: We add a RANDOM factor to the distance during sort.
+ *    score = distance + (random * 1.5)
  * 
- * Result: The first tiles to vanish are the corners/borders. The last tile to vanish is the center.
+ * This means a tile at distance 0 (center) could effectively compete with a tile at distance 1.5.
+ * The result is a "Swiss Cheese" reveal that closes in on the center but shows parts of it earlier.
  */
 const generateTiles = (): Tile[] => {
   const tiles: Tile[] = [];
@@ -37,13 +38,18 @@ const generateTiles = (): Tile[] => {
     }
   }
 
-  // Sort by distance descending (Outer edges -> Inner Center)
-  // We add a tiny random jitter so it doesn't look purely mechanical
-  return tiles.sort((a, b) => (b.distanceFromCenter + Math.random() * 0.2) - (a.distanceFromCenter + Math.random() * 0.2));
+  // "Noisy" Sort by distance descending
+  // We add random noise so the order isn't perfectly deterministic
+  return tiles.sort((a, b) => {
+    const scoreA = a.distanceFromCenter + (Math.random() * 1.5);
+    const scoreB = b.distanceFromCenter + (Math.random() * 1.5);
+    return scoreB - scoreA;
+  });
 };
 
 export const HiddenImage: React.FC<HiddenImageProps> = ({ imageSrc, revealedCount }) => {
-  const sortedTiles = useMemo(() => generateTiles(), []);
+  // Memoize tiles so they don't reshuffle on every render, only on mount (game start)
+  const sortedTiles = useMemo(() => generateTiles(), [imageSrc]); // Regenerate if imageSrc changes (new game)
 
   // Determine which specific tile IDs should be transparent based on the count
   const revealedIds = useMemo(() => {

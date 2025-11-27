@@ -11,13 +11,18 @@ interface WordResponse {
 
 /**
  * Generates a random word, a hint, and a visual description for SVG generation.
+ * Accepts a list of words to exclude to prevent repetition.
  */
-export const generateGameData = async (): Promise<WordResponse> => {
+export const generateGameData = async (excludeWords: string[] = []): Promise<WordResponse> => {
   const model = "gemini-2.5-flash";
+  
+  // Format the exclude list for the prompt (limit to last 50 to save tokens/context)
+  const recentExcludes = excludeWords.slice(0, 50).join(", ");
+  const excludeInstruction = recentExcludes ? `IMPORTANT: No facis servir cap d'aquestes paraules ja utilitzades: [${recentExcludes}].` : "";
 
   const response = await ai.models.generateContent({
     model: model,
-    contents: "Genera una paraula per al joc del penjat en català. Vull varietat: evita les paraules massa fàcils o típiques (com 'Gat', 'Casa', 'Sol'). Selecciona un substantiu físic aleatori (objecte, animal, lloc, instrument, menjar, vehicle). Retorna també una pista enginyosa en català i una descripció visual breu en anglès per generar una icona SVG.",
+    contents: `Genera una paraula per al joc del penjat en català. Vull varietat: evita les paraules massa fàcils o típiques (com 'Gat', 'Casa', 'Sol'). Selecciona un substantiu físic aleatori (objecte, animal, lloc, instrument, menjar, vehicle). Retorna també una pista enginyosa en català i una descripció visual breu en anglès per generar una icona SVG. ${excludeInstruction}`,
     config: {
       temperature: 1.2, // High randomness
       responseMimeType: "application/json",

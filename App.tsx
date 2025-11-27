@@ -19,6 +19,16 @@ const App: React.FC = () => {
   const [showHint, setShowHint] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   
+  // History State
+  const [wordHistory, setWordHistory] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('elpenjat_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  
   // Reaction Image State (SVG Postcard)
   const [finalImageUrl, setFinalImageUrl] = useState<string | null>(null);
   
@@ -39,8 +49,13 @@ const App: React.FC = () => {
     setErrorMessage('');
 
     try {
-      // 1. Generate text data (Word & Hint)
-      const wordData = await generateGameData();
+      // 1. Generate text data (Word & Hint), excluding last 100 used words
+      const wordData = await generateGameData(wordHistory);
+      
+      // Update history
+      const newHistory = [wordData.word, ...wordHistory].slice(0, 100);
+      setWordHistory(newHistory);
+      localStorage.setItem('elpenjat_history', JSON.stringify(newHistory));
       
       // 2. Generate the HIDDEN SVG image (Using Gemini Text model to avoid Quota issues)
       let svgImageSrc = "";
@@ -149,9 +164,10 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleGuess]);
 
+  // INCREASED REVEAL RATE: 3 tiles per turn + 4 initial base
   const effectiveRevealedCount = ((status as GameStatus) === GameStatus.WON || (status as GameStatus) === GameStatus.LOST)
     ? 25 
-    : 2 + (totalTurns * 2);
+    : 4 + (totalTurns * 3);
 
   return (
     <div className="h-screen bg-[#f8f5e6] text-amber-900 font-sans flex flex-col overflow-hidden">
@@ -267,7 +283,7 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {(status === GameStatus.PLAYING || status === GameStatus.WON || status === GameStatus.LOST) && data && (
+            {((status as GameStatus) === GameStatus.PLAYING || (status as GameStatus) === GameStatus.WON || (status as GameStatus) === GameStatus.LOST) && data && (
               <div className="bg-white p-4 md:p-6 rounded-3xl shadow-xl border-4 border-amber-100 flex flex-col gap-4 relative overflow-hidden mt-0 md:mt-0">
                 
                 {/* Background texture */}

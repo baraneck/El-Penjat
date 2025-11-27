@@ -8,17 +8,7 @@ import { audioManager } from '../services/audioService';
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      ambientLight: any;
-      spotLight: any;
-      directionalLight: any;
-      group: any;
-      mesh: any;
-      boxGeometry: any;
-      meshStandardMaterial: any;
-      meshBasicMaterial: any;
-      sphereGeometry: any;
-      cylinderGeometry: any;
-      torusGeometry: any;
+      [elemName: string]: any;
     }
   }
 }
