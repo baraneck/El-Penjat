@@ -1,23 +1,18 @@
-import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      server: {
-        port: 3000,
-        host: '0.0.0.0',
-      },
-      plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      }
-    };
+  // Carrega les variables d'entorn (com API_KEY) de Netlify o .env
+  const env = loadEnv(mode, (process as any).cwd(), '');
+  
+  return {
+    plugins: [react()],
+    define: {
+      // Això permet que el codi "process.env.API_KEY" funcioni al navegador
+      'process.env.API_KEY': JSON.stringify(env.API_KEY),
+      // Fix per algunes llibreries antigues
+      'process.env': {}
+    }
+  };
 });

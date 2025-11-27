@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameStatus, GameData, MAX_ERRORS } from './types';
 import { generateGameData, generateSecretImageSVG, generateSVGPostcard } from './services/geminiService';
@@ -150,7 +149,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleGuess]);
 
-  const effectiveRevealedCount = (status === GameStatus.WON || status === GameStatus.LOST)
+  const effectiveRevealedCount = ((status as GameStatus) === GameStatus.WON || (status as GameStatus) === GameStatus.LOST)
     ? 25 
     : 2 + (totalTurns * 2);
 

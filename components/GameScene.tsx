@@ -4,6 +4,25 @@ import { Center, OrbitControls, Environment, ContactShadows } from '@react-three
 import * as THREE from 'three';
 import { audioManager } from '../services/audioService';
 
+// Fix for missing JSX.IntrinsicElements definitions for React Three Fiber components
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      ambientLight: any;
+      spotLight: any;
+      directionalLight: any;
+      group: any;
+      mesh: any;
+      boxGeometry: any;
+      meshStandardMaterial: any;
+      meshBasicMaterial: any;
+      sphereGeometry: any;
+      cylinderGeometry: any;
+      torusGeometry: any;
+    }
+  }
+}
+
 interface GameSceneProps {
   errors: number;
   isCorrect: boolean;
